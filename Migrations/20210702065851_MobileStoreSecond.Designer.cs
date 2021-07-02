@@ -3,15 +3,17 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using MobileServices.Entities;
 
 namespace MobileServices.Migrations
 {
     [DbContext(typeof(MobileStoreContext))]
-    partial class MobileStoreContextModelSnapshot : ModelSnapshot
+    [Migration("20210702065851_MobileStoreSecond")]
+    partial class MobileStoreSecond
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -148,8 +150,9 @@ namespace MobileServices.Migrations
                     b.HasOne("MobileServices.Entities.Items", "Items")
                         .WithMany("Sales")
                         .HasForeignKey("ItemId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
+                        
                 });
 #pragma warning restore 612, 618
         }

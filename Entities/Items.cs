@@ -36,6 +36,8 @@ namespace MobileServices.Entities
         [Required]
         public decimal SellerMargin { get; set; }
 
+        public virtual ICollection<Sales> Sales { get; set; }
+
 
     }
 }

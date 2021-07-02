@@ -25,6 +25,10 @@ namespace MobileServices.Entities
         public int BrandId { get; set; }
        
         public Brands Brands { get; set; }
+        [ForeignKey(name: "Items")]
+        public int ItemId { get; set; }
+
+        public Items Items { get; set; }
 
     }
 
