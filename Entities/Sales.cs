@@ -15,10 +15,16 @@ namespace MobileServices.Entities
         [Column]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int SaleId { get; set; }
-        
+
+        [DateValidation(ErrorMessage = "Invalid date")]
         [Required]
         [Column]
         public DateTime DateOfSale { get; set; }
+        [Required]
+        [Column]
+        public int SellingPrice { get; set; }
+
+
 
         //foreign keys
         [ForeignKey(name: "Brands")]
@@ -30,7 +36,19 @@ namespace MobileServices.Entities
 
         public Items Items { get; set; }
 
+
+      
     }
 
-   
+    public class DateValidationAttribute : ValidationAttribute
+    {
+        public override bool IsValid(object value)
+        {
+            DateTime d = Convert.ToDateTime(value);
+            return d >= DateTime.Now;
+        }
+    }
+
+
+
 }

@@ -27,6 +27,21 @@ namespace MobileServices.Controllers
             return await _context.Brands.ToListAsync();
         }
 
+        // GET: api/GetBrandsByCategoryId/1
+        [Route("GetBrandsByCategory/{cat_id}")]
+        [HttpGet("{cat_id}")]
+        public async Task<ActionResult<IEnumerable<Brands>>> GetBrandsByCategory(int cat_id)
+        {
+            if (cat_id != 0)
+                return await _context.Brands.Where(b => b.CategoryId == cat_id).ToListAsync();
+            else
+            {
+                Response.StatusCode = StatusCodes.Status500InternalServerError;
+                return null;
+            }
+                
+        }
+
         // GET: api/Brands/5
         [HttpGet("{id}")]
         public async Task<ActionResult<Brands>> GetBrands(int id)

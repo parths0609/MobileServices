@@ -52,25 +52,36 @@ namespace MobileServices.Controllers
                 return BadRequest();
             }
 
-            _context.Entry(items).State = EntityState.Modified;
+            var brandId = from u in _context.Brands.Where(a => a.CategoryId == items.CategoryId)
+                           select u.BrandId;
 
-            try
+            bool isValidCategory = false;
+            if (brandId.Contains(items.BrandId))
+                isValidCategory = true;
+            if (isValidCategory)
             {
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!ItemsExists(id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
-            }
+                _context.Entry(items).State = EntityState.Modified;
 
-            return NoContent();
+                try
+                {
+                    await _context.SaveChangesAsync();
+                }
+                catch (DbUpdateConcurrencyException)
+                {
+                    if (!ItemsExists(id))
+                    {
+                        return NotFound();
+                    }
+                    else
+                    {
+                        throw;
+                    }
+                }
+                return NoContent();
+            }
+            else
+                return BadRequest("Category does not have the entered Brand or Item details are invalid. Please try again");
+           
         }
 
         // POST: api/Items

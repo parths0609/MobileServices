@@ -1,4 +1,4 @@
-﻿using System;
+﻿    using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -79,10 +79,23 @@ namespace MobileServices.Controllers
         [HttpPost]
         public async Task<ActionResult<Sales>> PostSales(Sales sales)
         {
-            _context.Sales.Add(sales);
-            await _context.SaveChangesAsync();
+            var brandId = from u in _context.Items.Where(a => a.ItemId == sales.ItemId)
+                           select u.BrandId;
+            bool isValidSale = false;
+            if (brandId.Contains(sales.BrandId))
+                isValidSale = true;
+            if (isValidSale)
+            {
+                _context.Sales.Add(sales);
+                await _context.SaveChangesAsync();
 
-            return CreatedAtAction("GetSales", new { id = sales.SaleId }, sales);
+                return CreatedAtAction("GetSales", new { id = sales.SaleId }, sales);
+            }
+            else
+            {
+                return BadRequest("Item and Brand does not Match or Sale is invalid. Please try again");
+            }
+                
         }
 
         // DELETE: api/Sales/5
