@@ -132,5 +132,12 @@ namespace MobileServices.Controllers
         {
             return _context.Sales.Any(e => e.SaleId == id);
         }
+
+
+        public List<Sales> SalesReportByDate(SalesReportRequest payload)
+        {
+            List<Sales> sales = new List<Sales>();
+            _context.Sales.Where(s=>s.DateOfSale)
+        }
     }
 }

@@ -40,6 +40,13 @@ namespace MobileServices.Entities
       
     }
 
+    public class SalesReportRequest : Sales
+    {
+        public DateTime StartDate { get; set; }
+
+        public DateTime EndDate { get; set; }
+    }
+
     public class DateValidationAttribute : ValidationAttribute
     {
         public override bool IsValid(object value)
