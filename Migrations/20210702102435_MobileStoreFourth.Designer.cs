@@ -10,8 +10,8 @@ using MobileServices.Entities;
 namespace MobileServices.Migrations
 {
     [DbContext(typeof(MobileStoreContext))]
-    [Migration("20210702095010_MobileStoreThird")]
-    partial class MobileStoreThird
+    [Migration("20210702102435_MobileStoreFourth")]
+    partial class MobileStoreFourth
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -147,13 +147,13 @@ namespace MobileServices.Migrations
                     b.HasOne("MobileServices.Entities.Brands", "Brands")
                         .WithMany("Sales")
                         .HasForeignKey("BrandId")
-                        .OnDelete(DeleteBehavior.NoAction)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("MobileServices.Entities.Items", "Items")
                         .WithMany("Sales")
                         .HasForeignKey("ItemId")
-                        .OnDelete(DeleteBehavior.NoAction)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });
 #pragma warning restore 612, 618

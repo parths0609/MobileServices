@@ -29,7 +29,7 @@ namespace MobileServices.Controllers
 
         // GET: api/GetBrandsByCategoryId/1
         [Route("GetBrandsByCategory/{cat_id}")]
-        [HttpGet("{cat_id}")]
+        [HttpGet]
         public async Task<ActionResult<IEnumerable<Brands>>> GetBrandsByCategory(int cat_id)
         {
             if (cat_id != 0)

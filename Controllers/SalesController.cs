@@ -20,6 +20,20 @@ namespace MobileServices.Controllers
             _context = context;
         }
 
+        // GET: GetSalesByBrand
+        [Route("GetSalesByBrand/{brand_id}")]
+        [HttpGet]
+        public async Task<ActionResult<IEnumerable<Sales>>> GetSalesByBrand(int brand_id)
+        {
+            if (brand_id != 0)
+                return await _context.Sales.Where(s => s.BrandId == brand_id).ToListAsync();
+            else
+                return BadRequest("Enter a valid brand id");
+        }
+
+
+       
+
         // GET: api/Sales
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Sales>>> GetSales()

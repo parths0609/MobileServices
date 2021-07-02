@@ -144,7 +144,7 @@ namespace MobileServices.Migrations
                     b.HasOne("MobileServices.Entities.Brands", "Brands")
                         .WithMany("Sales")
                         .HasForeignKey("BrandId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.HasOne("MobileServices.Entities.Items", "Items")
