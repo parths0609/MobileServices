@@ -2,14 +2,16 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using MobileServices.Entities;
 
 namespace MobileServices.Controllers
 {
-    public class SalesController : Controller
+    [Route("api/[controller]")]
+    [ApiController]
+    public class SalesController : ControllerBase
     {
         private readonly MobileStoreContext _context;
 
@@ -18,137 +20,85 @@ namespace MobileServices.Controllers
             _context = context;
         }
 
-        // GET: Sales
-        public async Task<IActionResult> Index()
+        // GET: api/Sales
+        [HttpGet]
+        public async Task<ActionResult<IEnumerable<Sales>>> GetSales()
         {
-            var mobileStoreContext = _context.Sales.Include(s => s.Brands);
-            return View(await mobileStoreContext.ToListAsync());
+            return await _context.Sales.ToListAsync();
         }
 
-        // GET: Sales/Details/5
-        public async Task<IActionResult> Details(int? id)
+        // GET: api/Sales/5
+        [HttpGet("{id}")]
+        public async Task<ActionResult<Sales>> GetSales(int id)
         {
-            if (id == null)
-            {
-                return NotFound();
-            }
-
-            var sales = await _context.Sales
-                .Include(s => s.Brands)
-                .FirstOrDefaultAsync(m => m.SaleId == id);
-            if (sales == null)
-            {
-                return NotFound();
-            }
-
-            return View(sales);
-        }
-
-        // GET: Sales/Create
-        public IActionResult Create()
-        {
-            ViewData["BrandId"] = new SelectList(_context.Brands, "BrandId", "BrandName");
-            return View();
-        }
-
-        // POST: Sales/Create
-        // To protect from overposting attacks, enable the specific properties you want to bind to, for 
-        // more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("SaleId,DateOfSale,BrandId")] Sales sales)
-        {
-            if (ModelState.IsValid)
-            {
-                _context.Add(sales);
-                await _context.SaveChangesAsync();
-                return RedirectToAction(nameof(Index));
-            }
-            ViewData["BrandId"] = new SelectList(_context.Brands, "BrandId", "BrandName", sales.BrandId);
-            return View(sales);
-        }
-
-        // GET: Sales/Edit/5
-        public async Task<IActionResult> Edit(int? id)
-        {
-            if (id == null)
-            {
-                return NotFound();
-            }
-
             var sales = await _context.Sales.FindAsync(id);
+
             if (sales == null)
             {
                 return NotFound();
             }
-            ViewData["BrandId"] = new SelectList(_context.Brands, "BrandId", "BrandName", sales.BrandId);
-            return View(sales);
+
+            return sales;
         }
 
-        // POST: Sales/Edit/5
-        // To protect from overposting attacks, enable the specific properties you want to bind to, for 
-        // more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("SaleId,DateOfSale,BrandId")] Sales sales)
+        // PUT: api/Sales/5
+        // To protect from overposting attacks, enable the specific properties you want to bind to, for
+        // more details, see https://go.microsoft.com/fwlink/?linkid=2123754.
+        [HttpPut("{id}")]
+        public async Task<IActionResult> PutSales(int id, Sales sales)
         {
             if (id != sales.SaleId)
             {
-                return NotFound();
+                return BadRequest();
             }
 
-            if (ModelState.IsValid)
+            _context.Entry(sales).State = EntityState.Modified;
+
+            try
             {
-                try
-                {
-                    _context.Update(sales);
-                    await _context.SaveChangesAsync();
-                }
-                catch (DbUpdateConcurrencyException)
-                {
-                    if (!SalesExists(sales.SaleId))
-                    {
-                        return NotFound();
-                    }
-                    else
-                    {
-                        throw;
-                    }
-                }
-                return RedirectToAction(nameof(Index));
+                await _context.SaveChangesAsync();
             }
-            ViewData["BrandId"] = new SelectList(_context.Brands, "BrandId", "BrandName", sales.BrandId);
-            return View(sales);
+            catch (DbUpdateConcurrencyException)
+            {
+                if (!SalesExists(id))
+                {
+                    return NotFound();
+                }
+                else
+                {
+                    throw;
+                }
+            }
+
+            return NoContent();
         }
 
-        // GET: Sales/Delete/5
-        public async Task<IActionResult> Delete(int? id)
+        // POST: api/Sales
+        // To protect from overposting attacks, enable the specific properties you want to bind to, for
+        // more details, see https://go.microsoft.com/fwlink/?linkid=2123754.
+        [HttpPost]
+        public async Task<ActionResult<Sales>> PostSales(Sales sales)
         {
-            if (id == null)
-            {
-                return NotFound();
-            }
+            _context.Sales.Add(sales);
+            await _context.SaveChangesAsync();
 
-            var sales = await _context.Sales
-                .Include(s => s.Brands)
-                .FirstOrDefaultAsync(m => m.SaleId == id);
+            return CreatedAtAction("GetSales", new { id = sales.SaleId }, sales);
+        }
+
+        // DELETE: api/Sales/5
+        [HttpDelete("{id}")]
+        public async Task<ActionResult<Sales>> DeleteSales(int id)
+        {
+            var sales = await _context.Sales.FindAsync(id);
             if (sales == null)
             {
                 return NotFound();
             }
 
-            return View(sales);
-        }
-
-        // POST: Sales/Delete/5
-        [HttpPost, ActionName("Delete")]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteConfirmed(int id)
-        {
-            var sales = await _context.Sales.FindAsync(id);
             _context.Sales.Remove(sales);
             await _context.SaveChangesAsync();
-            return RedirectToAction(nameof(Index));
+
+            return sales;
         }
 
         private bool SalesExists(int id)

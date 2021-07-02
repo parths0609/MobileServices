@@ -2,14 +2,16 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using MobileServices.Entities;
 
 namespace MobileServices.Controllers
 {
-    public class ItemsController : Controller
+    [Route("api/[controller]")]
+    [ApiController]
+    public class ItemsController : ControllerBase
     {
         private readonly MobileStoreContext _context;
 
@@ -18,143 +20,85 @@ namespace MobileServices.Controllers
             _context = context;
         }
 
-        // GET: Items
-        public async Task<IActionResult> Index()
+        // GET: api/Items
+        [HttpGet]
+        public async Task<ActionResult<IEnumerable<Items>>> GetItems()
         {
-            var mobileStoreContext = _context.Items.Include(i => i.Brands).Include(i => i.Categories);
-            return View(await mobileStoreContext.ToListAsync());
+            return await _context.Items.ToListAsync();
         }
 
-        // GET: Items/Details/5
-        public async Task<IActionResult> Details(int? id)
+        // GET: api/Items/5
+        [HttpGet("{id}")]
+        public async Task<ActionResult<Items>> GetItems(int id)
         {
-            if (id == null)
-            {
-                return NotFound();
-            }
-
-            var items = await _context.Items
-                .Include(i => i.Brands)
-                .Include(i => i.Categories)
-                .FirstOrDefaultAsync(m => m.ItemId == id);
-            if (items == null)
-            {
-                return NotFound();
-            }
-
-            return View(items);
-        }
-
-        // GET: Items/Create
-        public IActionResult Create()
-        {
-            ViewData["BrandId"] = new SelectList(_context.Brands, "BrandId", "BrandName");
-            ViewData["CategoryId"] = new SelectList(_context.Categories, "CategoryId", "CategoryName");
-            return View();
-        }
-
-        // POST: Items/Create
-        // To protect from overposting attacks, enable the specific properties you want to bind to, for 
-        // more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("ItemId,ItemName,CategoryId,BrandId,Price,SellerMargin")] Items items)
-        {
-            if (ModelState.IsValid)
-            {
-                _context.Add(items);
-                await _context.SaveChangesAsync();
-                return RedirectToAction(nameof(Index));
-            }
-            ViewData["BrandId"] = new SelectList(_context.Brands, "BrandId", "BrandName", items.BrandId);
-            ViewData["CategoryId"] = new SelectList(_context.Categories, "CategoryId", "CategoryName", items.CategoryId);
-            return View(items);
-        }
-
-        // GET: Items/Edit/5
-        public async Task<IActionResult> Edit(int? id)
-        {
-            if (id == null)
-            {
-                return NotFound();
-            }
-
             var items = await _context.Items.FindAsync(id);
+
             if (items == null)
             {
                 return NotFound();
             }
-            ViewData["BrandId"] = new SelectList(_context.Brands, "BrandId", "BrandName", items.BrandId);
-            ViewData["CategoryId"] = new SelectList(_context.Categories, "CategoryId", "CategoryName", items.CategoryId);
-            return View(items);
+
+            return items;
         }
 
-        // POST: Items/Edit/5
-        // To protect from overposting attacks, enable the specific properties you want to bind to, for 
-        // more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("ItemId,ItemName,CategoryId,BrandId,Price,SellerMargin")] Items items)
+        // PUT: api/Items/5
+        // To protect from overposting attacks, enable the specific properties you want to bind to, for
+        // more details, see https://go.microsoft.com/fwlink/?linkid=2123754.
+        [HttpPut("{id}")]
+        public async Task<IActionResult> PutItems(int id, Items items)
         {
             if (id != items.ItemId)
             {
-                return NotFound();
+                return BadRequest();
             }
 
-            if (ModelState.IsValid)
+            _context.Entry(items).State = EntityState.Modified;
+
+            try
             {
-                try
-                {
-                    _context.Update(items);
-                    await _context.SaveChangesAsync();
-                }
-                catch (DbUpdateConcurrencyException)
-                {
-                    if (!ItemsExists(items.ItemId))
-                    {
-                        return NotFound();
-                    }
-                    else
-                    {
-                        throw;
-                    }
-                }
-                return RedirectToAction(nameof(Index));
+                await _context.SaveChangesAsync();
             }
-            ViewData["BrandId"] = new SelectList(_context.Brands, "BrandId", "BrandName", items.BrandId);
-            ViewData["CategoryId"] = new SelectList(_context.Categories, "CategoryId", "CategoryName", items.CategoryId);
-            return View(items);
+            catch (DbUpdateConcurrencyException)
+            {
+                if (!ItemsExists(id))
+                {
+                    return NotFound();
+                }
+                else
+                {
+                    throw;
+                }
+            }
+
+            return NoContent();
         }
 
-        // GET: Items/Delete/5
-        public async Task<IActionResult> Delete(int? id)
+        // POST: api/Items
+        // To protect from overposting attacks, enable the specific properties you want to bind to, for
+        // more details, see https://go.microsoft.com/fwlink/?linkid=2123754.
+        [HttpPost]
+        public async Task<ActionResult<Items>> PostItems(Items items)
         {
-            if (id == null)
-            {
-                return NotFound();
-            }
+            _context.Items.Add(items);
+            await _context.SaveChangesAsync();
 
-            var items = await _context.Items
-                .Include(i => i.Brands)
-                .Include(i => i.Categories)
-                .FirstOrDefaultAsync(m => m.ItemId == id);
+            return CreatedAtAction("GetItems", new { id = items.ItemId }, items);
+        }
+
+        // DELETE: api/Items/5
+        [HttpDelete("{id}")]
+        public async Task<ActionResult<Items>> DeleteItems(int id)
+        {
+            var items = await _context.Items.FindAsync(id);
             if (items == null)
             {
                 return NotFound();
             }
 
-            return View(items);
-        }
-
-        // POST: Items/Delete/5
-        [HttpPost, ActionName("Delete")]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteConfirmed(int id)
-        {
-            var items = await _context.Items.FindAsync(id);
             _context.Items.Remove(items);
             await _context.SaveChangesAsync();
-            return RedirectToAction(nameof(Index));
+
+            return items;
         }
 
         private bool ItemsExists(int id)
