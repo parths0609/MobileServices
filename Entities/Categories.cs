@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 
 namespace MobileServices.Entities
 {
+    [Table(name: "Categories")]
     public class Categories
     {
         [Key]
@@ -20,5 +21,7 @@ namespace MobileServices.Entities
 
 
         public virtual ICollection<Brands> Brands { get; set; }
+
+        public virtual ICollection<Items> Items { get; set; }
     }
 }

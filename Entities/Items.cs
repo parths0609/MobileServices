@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 
 namespace MobileServices.Entities
 {
+    [Table(name: "Items")]
     public class Items
     {
         [Key]
@@ -22,7 +23,12 @@ namespace MobileServices.Entities
        
         [ForeignKey("CategoryId")]
         public virtual Categories Categories { get; set; }
-       
+
+
+        public virtual int BrandId { get; set; }
+        [ForeignKey("BrandId")]
+        public virtual Brands Brands { get; set; }
+
         [Column]
         [Required]
         public int Price { get; set; }
