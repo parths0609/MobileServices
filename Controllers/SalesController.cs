@@ -1,4 +1,4 @@
-﻿    using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using MobileServices.Entities;
-
+using static System.Console;
 namespace MobileServices.Controllers
 {
     [Route("api/[controller]")]
@@ -56,8 +56,6 @@ namespace MobileServices.Controllers
         }
 
         // PUT: api/Sales/5
-        // To protect from overposting attacks, enable the specific properties you want to bind to, for
-        // more details, see https://go.microsoft.com/fwlink/?linkid=2123754.
         [HttpPut("{id}")]
         public async Task<IActionResult> PutSales(int id, Sales sales)
         {
@@ -132,12 +130,50 @@ namespace MobileServices.Controllers
         {
             return _context.Sales.Any(e => e.SaleId == id);
         }
-
-
-        public List<Sales> SalesReportByDate(SalesReportRequest payload)
+        [Route("GetSalesByDateRange")]
+        [HttpPost]
+        public List<SalesReportResponse> SalesReportByDate(SalesReportRequest payload)
         {
-            List<Sales> sales = new List<Sales>();
-            _context.Sales.Where(s=>s.DateOfSale)
+            List<SalesReportResponse> sales = new List<SalesReportResponse>();
+            if (payload.EndDate == null || payload.StartDate == null)
+            {
+                Response.StatusCode = StatusCodes.Status400BadRequest;
+                return null;
+            }
+            else
+            {
+                var priceDetails = from c in _context.Items
+                                select new
+                                {
+                                    c.Price,
+                                    c.SellerMargin,
+                                    c.ItemId
+                                };
+
+                var recordsBetweenDates = from s in _context.Sales.Where(n => n.DateOfSale >= payload.StartDate && n.DateOfSale < payload.EndDate)
+                                          select s;
+                
+                foreach (var sale in recordsBetweenDates)
+                {
+
+                    var record = priceDetails.Where(i => i.ItemId == sale.ItemId).SingleOrDefault();
+                    var costPrice = record.Price - record.SellerMargin;
+                    var PL = sale.SellingPrice - costPrice;
+
+                    //var diff = record.SellerMargin - PL;
+                    var PLPercent = (PL / costPrice) * 100;
+                    var Duration = payload.EndDate - payload.StartDate;
+                    sales.Add(new SalesReportResponse
+                    {
+                        PL = PL,
+                        PLPercent = PLPercent,
+                        Duration = Duration.Days
+                    });
+
+                    
+                }
+            }
+            return sales;
         }
     }
 }

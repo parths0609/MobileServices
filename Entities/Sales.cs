@@ -36,15 +36,35 @@ namespace MobileServices.Entities
 
         public Items Items { get; set; }
 
+        public override string ToString()
+        {
+            return String.Format("Sale of Rs. {0} was made on {1} for ItemId {2}" +
+                " of BrandId {3} against Saleid {4}", SellingPrice, DateOfSale, ItemId, BrandId, SaleId );
+        }
 
-      
     }
 
-    public class SalesReportRequest : Sales
+    public class SalesReportRequest /*: Sales*/
     {
         public DateTime StartDate { get; set; }
 
         public DateTime EndDate { get; set; }
+    }
+
+    public class SalesReportResponse
+    {
+        public int TotalSales { get; set; }
+
+        public int Turnover { get; set; }
+
+        public decimal PL { get; set; }
+
+        public decimal PLPercent { get; set; }
+
+        public int Duration { get; set; }
+
+        
+
     }
 
     public class DateValidationAttribute : ValidationAttribute
