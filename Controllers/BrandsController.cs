@@ -57,8 +57,7 @@ namespace MobileServices.Controllers
         }
 
         // PUT: api/Brands/5
-        // To protect from overposting attacks, enable the specific properties you want to bind to, for
-        // more details, see https://go.microsoft.com/fwlink/?linkid=2123754.
+       
         [HttpPut("{id}")]
         public async Task<IActionResult> PutBrands(int id, Brands brands)
         {
@@ -89,8 +88,7 @@ namespace MobileServices.Controllers
         }
 
         // POST: api/Brands
-        // To protect from overposting attacks, enable the specific properties you want to bind to, for
-        // more details, see https://go.microsoft.com/fwlink/?linkid=2123754.
+       
         [HttpPost]
         public async Task<ActionResult<Brands>> PostBrands(Brands brands)
         {
