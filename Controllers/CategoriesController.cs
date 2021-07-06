@@ -14,7 +14,10 @@ namespace MobileServices.Controllers
     public class CategoriesController : ControllerBase
     {
         private readonly MobileStoreContext _context;
+        public CategoriesController()
+        {
 
+        }
         public CategoriesController(MobileStoreContext context)
         {
             _context = context;
@@ -29,7 +32,7 @@ namespace MobileServices.Controllers
 
         // GET: api/Categories/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<Categories>> GetCategories(int id)
+        public async Task<ActionResult<Categories>> GetCategories(int? id)
         {
             var categories = await _context.Categories.FindAsync(id);
 

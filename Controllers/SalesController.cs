@@ -30,17 +30,12 @@ namespace MobileServices.Controllers
             else
                 return BadRequest("Enter a valid brand id");
         }
-
-
-       
-
         // GET: api/Sales
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Sales>>> GetSales()
         {
             return await _context.Sales.ToListAsync();
         }
-
         // GET: api/Sales/5
         [HttpGet("{id}")]
         public async Task<ActionResult<Sales>> GetSales(int id)
@@ -54,7 +49,6 @@ namespace MobileServices.Controllers
 
             return sales;
         }
-
         // PUT: api/Sales/5
         [HttpPut("{id}")]
         public async Task<IActionResult> PutSales(int id, Sales sales)
@@ -86,18 +80,17 @@ namespace MobileServices.Controllers
         }
 
         // POST: api/Sales
-        // To protect from overposting attacks, enable the specific properties you want to bind to, for
-        // more details, see https://go.microsoft.com/fwlink/?linkid=2123754.
         [HttpPost]
         public async Task<ActionResult<Sales>> PostSales(Sales sales)
         {
             var brandId = from u in _context.Items.Where(a => a.ItemId == sales.ItemId)
-                           select u.BrandId;
+                          select u.BrandId;
             bool isValidSale = false;
             if (brandId.Contains(sales.BrandId))
                 isValidSale = true;
             if (isValidSale)
             {
+                sales.DateOfSale = DateTime.Now;
                 _context.Sales.Add(sales);
                 await _context.SaveChangesAsync();
 
@@ -107,7 +100,7 @@ namespace MobileServices.Controllers
             {
                 return BadRequest("Item and Brand does not Match or Sale is invalid. Please try again");
             }
-                
+
         }
 
         // DELETE: api/Sales/5
@@ -134,46 +127,137 @@ namespace MobileServices.Controllers
         [HttpPost]
         public List<SalesReportResponse> SalesReportByDate(SalesReportRequest payload)
         {
-            List<SalesReportResponse> sales = new List<SalesReportResponse>();
-            if (payload.EndDate == null || payload.StartDate == null)
+            try
             {
-                Response.StatusCode = StatusCodes.Status400BadRequest;
-                return null;
-            }
-            else
-            {
-                var priceDetails = from c in _context.Items
-                                select new
-                                {
-                                    c.Price,
-                                    c.SellerMargin,
-                                    c.ItemId
-                                };
-
-                var recordsBetweenDates = from s in _context.Sales.Where(n => n.DateOfSale >= payload.StartDate && n.DateOfSale < payload.EndDate)
-                                          select s;
-                
-                foreach (var sale in recordsBetweenDates)
+                List<SalesReportResponse> sales = new List<SalesReportResponse>();
+                int total_sales = 0, turnover = 0, totalcp = 0, totalsp = 0; TimeSpan duration = TimeSpan.FromDays(0); decimal PL = 0, PLPercent = 0;
+                if (payload.EndDate == null || payload.StartDate == null)
                 {
-
-                    var record = priceDetails.Where(i => i.ItemId == sale.ItemId).SingleOrDefault();
-                    var costPrice = record.Price - record.SellerMargin;
-                    var PL = sale.SellingPrice - costPrice;
-
-                    //var diff = record.SellerMargin - PL;
-                    var PLPercent = (PL / costPrice) * 100;
-                    var Duration = payload.EndDate - payload.StartDate;
+                    Response.StatusCode = StatusCodes.Status400BadRequest;
+                    return null;
+                }
+                else
+                {
+                    var priceDetails = from c in _context.Items
+                                       select new
+                                       {
+                                           c.Price,
+                                           c.ItemId
+                                       };
+                    var recordsBetweenDates = from s in _context.Sales.Where(n => n.DateOfSale >= payload.StartDate && n.DateOfSale < payload.EndDate)
+                                              select s;
+                    total_sales = recordsBetweenDates.Count();
+                    turnover = recordsBetweenDates.Sum(t => t.SellingPrice);
+                    duration = payload.EndDate - payload.StartDate;
+                    foreach (var sale in recordsBetweenDates)
+                    {
+                        var record = priceDetails.Where(i => i.ItemId == sale.ItemId).SingleOrDefault();
+                        int costprice = record.Price;
+                        totalcp += costprice;
+                        int sellingprice = sale.SellingPrice;
+                        totalsp += sellingprice;
+                        PL += (sellingprice - costprice);
+                    }
+                    PLPercent = CalculateProfitLoss(totalcp, totalsp);
                     sales.Add(new SalesReportResponse
                     {
-                        PL = PL,
+                        BrandName = "N.A",
+                        Turnover = turnover,
+                        Duration = (int)duration.TotalDays,
+                        TotalSales = total_sales,
                         PLPercent = PLPercent,
-                        Duration = Duration.Days
+                        PL = PL
+                    });
+                }
+                return sales;
+            }
+            catch (Exception e)
+            {
+                Response.StatusCode = StatusCodes.Status500InternalServerError;
+                WriteLine(e.Message); WriteLine(e.StackTrace);
+                return null;
+            }
+        }
+
+        [Route("GetSalesByBrand")]
+        [HttpPost]
+        public List<SalesReportResponse> SalesReportByBrand(SalesReportRequest payload)
+        {
+            try
+            {
+                List<SalesReportResponse> sales = new List<SalesReportResponse>();
+                int total_sales = 0, turnover = 0, totalcp = 0, totalsp = 0; TimeSpan duration = TimeSpan.FromDays(0); decimal PL = 0, PLPercent = 0;
+
+                if (payload.EndDate == null || payload.StartDate == null)
+                {
+                    Response.StatusCode = StatusCodes.Status400BadRequest;
+                    return null;
+                }
+                else
+                {
+                    var priceDetails = from c in _context.Items.Where(s => s.BrandId == payload.BrandId)
+                                       select new
+                                       {
+                                           c.Price,
+                                           c.ItemId
+                                       };
+                    var recordsBetweenDates = from s in _context.Sales.Where(n => n.DateOfSale >= payload.StartDate && n.DateOfSale < payload.EndDate && n.BrandId == payload.BrandId)
+                                              select s;
+
+                    IQueryable<string> brand_name = from b in _context.Brands.Where(x => x.BrandId == payload.BrandId)
+                                                    select b.BrandName.ToString();
+                    string brand = brand_name.FirstOrDefault();
+
+                    total_sales = recordsBetweenDates.Count();
+                    turnover = recordsBetweenDates.Sum(t => t.SellingPrice);
+                    duration = payload.EndDate - payload.StartDate;
+                    foreach (var sale in recordsBetweenDates)
+                    {
+                        var record = priceDetails.Where(i => i.ItemId == sale.ItemId).SingleOrDefault();
+                        int costprice = record.Price;
+                        totalcp += costprice;
+                        int sellingprice = sale.SellingPrice;
+                        totalsp += sellingprice;
+                        PL += (sellingprice - costprice);
+                    }
+                    PLPercent = CalculateProfitLoss(totalcp, totalsp);
+                    sales.Add(new SalesReportResponse
+                    {
+                        BrandName = brand,
+                        Turnover = turnover,
+                        Duration = (int)duration.TotalDays,
+                        TotalSales = total_sales,
+                        PLPercent = PLPercent,
+                        PL = PL
                     });
 
-                    
                 }
+                return sales;
             }
-            return sales;
+            catch (Exception e)
+            {
+                Response.StatusCode = StatusCodes.Status500InternalServerError;
+                WriteLine(e.Message); WriteLine(e.StackTrace);
+                return null;
+            }
         }
+        private decimal CalculateProfitLoss(int cp, int sp)
+        {
+            try
+            {
+                decimal PL = sp - cp;
+                PL = PL / sp;
+                PL = Math.Round(PL * 100, 2);
+                return PL;
+            }
+            catch (Exception e)
+            {
+                Response.StatusCode = StatusCodes.Status500InternalServerError;
+                WriteLine(e.Message); WriteLine(e.StackTrace);
+                return 0;
+            }
+        }
+
     }
 }
+

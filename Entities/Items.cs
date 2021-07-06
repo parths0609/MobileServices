@@ -32,9 +32,9 @@ namespace MobileServices.Entities
         [Column]
         [Required]
         public int Price { get; set; }
-        [Column]
-        [Required]
-        public decimal SellerMargin { get; set; }
+        //[Column]
+        //[Required]
+        //public decimal SellerMargin { get; set; }
 
         public virtual ICollection<Sales> Sales { get; set; }
 

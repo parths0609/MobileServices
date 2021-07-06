@@ -16,8 +16,8 @@ namespace MobileServices.Entities
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int SaleId { get; set; }
 
-        [DateValidation(ErrorMessage = "Invalid date")]
-        [Required]
+        //[DateValidation(ErrorMessage = "Invalid date")]
+        //[Required]
         [Column]
         public DateTime DateOfSale { get; set; }
         [Required]
@@ -49,10 +49,13 @@ namespace MobileServices.Entities
         public DateTime StartDate { get; set; }
 
         public DateTime EndDate { get; set; }
+
+        public int BrandId { get; set; }
     }
 
     public class SalesReportResponse
     {
+        public string BrandName { get; set; }
         public int TotalSales { get; set; }
 
         public int Turnover { get; set; }
