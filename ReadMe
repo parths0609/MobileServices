@@ -1,0 +1,6 @@
+Mobile Store is a Service Application in .NET Core v3.1.
+It uses Entity Framework, LINQ using Code first approach. 
+It uses SQL Server Database.
+The API's for CRUD are scaffolded but there are multiple custom changes in every method according to requirement. 
+The API'S for monthly report and BrandWise sales is in the sales controller. 
+These methods can be shifted to repository and service layers and called from controller using dependency injection. 
